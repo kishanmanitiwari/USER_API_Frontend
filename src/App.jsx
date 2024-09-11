@@ -1,375 +1,350 @@
-import React, { useState } from 'react';
-import { API_URL } from './utils/constants';
-import axios from 'axios';
+import React, { useState } from "react";
+import { API_URL } from "./utils/constants";
+import useApi from "./hooks/useApi";
+import InputField from "./components/InputField"; // Import custom component
+import Button from "./components/Button"; // Import custom component
+import ResponseDisplay from "./components/ResponseDisplay"; // Import custom component
+import { TailSpin } from "react-loader-spinner";
 
 const App = () => {
-    const [users, setUsers] = useState([]);
-    const [userId, setUserId] = useState({
-        getId: '',
-        postId: '',
-        putId: '',
-        patchId: '',
-        deleteId: ''
+  const [userId, setUserId] = useState({
+    getId: "",
+    postId: "",
+    putId: "",
+    patchId: "",
+    deleteId: "",
+  });
+  const [newUser, setNewUser] = useState({
+    first_name: "",
+    last_name: "",
+    gender: "",
+    email: "",
+    job_title: "",
+  }); //Input Handle
+  const [appId, setAppId] = useState({
+    postAppId: "",
+    putAppId: "",
+    patchAppId: "",
+    deleteAppId: "",
+  });
+
+  const { loading, data, error, makeRequest } = useApi(API_URL);
+
+  const getUsers = () => makeRequest("get");
+
+  const getUserById = () => {
+    makeRequest("get", `${userId.getId}`);
+
+    // Reset the getId field to an empty string
+    setUserId((prevState) => ({
+      ...prevState,
+      getId: "",
+    }));
+  };
+
+  const postUser = () => {
+    makeRequest("post", "", newUser, {
+      "Content-Type": "application/x-www-form-urlencoded",
+      appid: appId.postAppId,
     });
-    const [userData, setUserData] = useState({});
-    const [appId, setAppId] = useState('');
-    const [newUser, setNewUser] = useState({
-        first_name: '',
-        last_name: '',
-        gender: '',
-        email: '',
-        job_title: ''
+
+    setNewUser({
+      first_name: "",
+      last_name: "",
+      gender: "",
+      email: "",
+      job_title: "",
     });
-    const [updateData, setUpdateData] = useState({
-        first_name: '',
-        last_name: '',
-        gender: '',
-        email: '',
-        job_title: ''
+
+    setAppId((prevState) => ({
+      ...prevState,
+      postAppId: "",
+    }));
+  };
+
+  const putUser = () => {
+    makeRequest("put", `${userId.putId}`, newUser, {
+      "Content-Type": "application/x-www-form-urlencoded",
+      appid: appId.putAppId,
     });
-    const [response, setResponse] = useState('');
+    setNewUser({
+      first_name: "",
+      last_name: "",
+      gender: "",
+      email: "",
+      job_title: "",
+    });
+    setAppId((prevState) => ({
+      ...prevState,
+      putAppId: "",
+    }));
+  };
 
-    // Get all users
-const getUsers = async () => {
-    try {
-        const res = await axios.get(API_URL);
-        setUsers(res.data.data);
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        setResponse(`Error fetching users: ${error.message}`);
-    }
-};
+  const patchUser = () => {
+    makeRequest("patch", `${userId.patchId}`, newUser, {
+      "Content-Type": "application/x-www-form-urlencoded",
+      appid: appId.patchAppId,
+    });
 
-// Get user by ID
-const getUserById = async () => {
-    try {
-        const res = await axios.get(`${API_URL}/${userId.getId}`);
-        setUserData(res.data);
-        setUserId((prev) => ({ ...prev, getId: '' }));
-    } catch (error) {
-        console.error('Error fetching user by ID:', error);
-        setResponse(`Error fetching user by ID: ${error.message}`);
-    }
-};
+    setNewUser({
+      first_name: "",
+      last_name: "",
+      gender: "",
+      email: "",
+      job_title: "",
+    });
 
-// Create a new user
-const postUser = async () => {
-    try {
-        const res = await axios.post(API_URL, newUser, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                appid: appId
-            }
-        });
-        setResponse(`User created: ${JSON.stringify(res.data)}`);
-        setNewUser({ first_name: '', last_name: '', gender: '', email: '', job_title: '' });
-        setAppId('');
-    } catch (error) {
-        console.error('Error creating user:', error);
-        setResponse(`Error creating user: ${error.message}`);
-    }
-};
+    setAppId((prevState) => ({
+      ...prevState,
+      patchAppId: "",
+    }));
+  };
 
-// Update user (PUT)
-const putUser = async () => {
-    try {
-        const res = await axios.put(`${API_URL}/${userId.putId}`, updateData, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                appid: appId
-            }
-        });
-        setResponse(`User updated: ${JSON.stringify(res.data)}`);
-        setAppId('');
-        setUpdateData({ first_name: '', last_name: '', gender: '', email: '', job_title: '' });
-    } catch (error) {
-        console.error('Error updating user:', error);
-        setResponse(`Error updating user: ${error.message}`);
-    }
-};
-
-// Partially update user (PATCH)
-const patchUser = async () => {
-    try {
-        const res = await axios.patch(`${API_URL}/${userId.patchId}`, updateData, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                appid: appId
-            }
-        });
-        setResponse(`User partially updated: ${JSON.stringify(res.data)}`);
-        setAppId('');
-        setUpdateData({ first_name: '', last_name: '', gender: '', email: '', job_title: '' });
-    } catch (error) {
-        console.error('Error partially updating user:', error);
-        setResponse(`Error partially updating user: ${error.message}`);
-    }
-};
-
-// Delete user
-const deleteUser = async () => {
-    try {
-        const res = await axios.delete(`${API_URL}/${userId.deleteId}`, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                appid: appId
-            }
-        });
-        setResponse(`User deleted: ${JSON.stringify(res.data)}`);
-        setUserId((prev) => ({ ...prev, deleteId: '' }));
-        setAppId('');
-    } catch (error) {
-        console.error('Error deleting user:', error);
-        setResponse(`Error deleting user: ${error.message}`);
-    }
-};
-
-    return (
-        <div className="min-h-screen bg-gray-100 p-8">
-            <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold mb-6 text-center">User API UI</h1>
-
-                {/* Get All Users */}
-                <div className="mb-6">
-                    <button
-                        onClick={getUsers}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
-                    >
-                        Get All Users
-                    </button>
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <h2 className="text-xl font-semibold mb-2">Users</h2>
-                        <pre className="whitespace-pre-wrap">{JSON.stringify(users, null, 2)}</pre>
-                    </div>
-                </div>
-
-                {/* Get User by ID */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-semibold mb-2">Get User by ID</h2>
-                    <input
-                        type="text"
-                        value={userId.getId}
-                        onChange={(e) => setUserId({ ...userId, getId: e.target.value })}
-                        placeholder="User ID"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <button
-                        onClick={getUserById}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600"
-                    >
-                        Get User
-                    </button>
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <pre className="whitespace-pre-wrap">{JSON.stringify(userData, null, 2)}</pre>
-                    </div>
-                </div>
-
-                {/* Create User */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-semibold mb-2">Create User</h2>
-                    <input
-                        type="text"
-                        value={newUser.first_name}
-                        onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
-                        placeholder="First Name"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={newUser.last_name}
-                        onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
-                        placeholder="Last Name"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={newUser.gender}
-                        onChange={(e) => setNewUser({ ...newUser, gender: e.target.value })}
-                        placeholder="Gender"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="email"
-                        value={newUser.email}
-                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                        placeholder="Email"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={newUser.job_title}
-                        onChange={(e) => setNewUser({ ...newUser, job_title: e.target.value })}
-                        placeholder="Job Title"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={appId}
-                        onChange={(e) => setAppId(e.target.value)}
-                        placeholder="API KEY"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <button
-                        onClick={postUser}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
-                    >
-                        Create User
-                    </button>
-                </div>
-
-                {/* Update User (PUT) */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-semibold mb-2">Update User (PUT)</h2>
-                    <input
-                        type="text"
-                        value={userId.putId}
-                        onChange={(e) => setUserId({ ...userId, putId: e.target.value })}
-                        placeholder="User ID"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.first_name}
-                        onChange={(e) => setUpdateData({ ...updateData, first_name: e.target.value })}
-                        placeholder="First Name"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.last_name}
-                        onChange={(e) => setUpdateData({ ...updateData, last_name: e.target.value })}
-                        placeholder="Last Name"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.gender}
-                        onChange={(e) => setUpdateData({ ...updateData, gender: e.target.value })}
-                        placeholder="Gender"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="email"
-                        value={updateData.email}
-                        onChange={(e) => setUpdateData({ ...updateData, email: e.target.value })}
-                        placeholder="Email"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.job_title}
-                        onChange={(e) => setUpdateData({ ...updateData, job_title: e.target.value })}
-                        placeholder="Job Title"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={appId}
-                        onChange={(e) => setAppId(e.target.value)}
-                        placeholder="API KEY"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <button
-                        onClick={putUser}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600"
-                    >
-                        Update User
-                    </button>
-                </div>
-
-                {/* Partial Update User (PATCH) */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-semibold mb-2">Partial Update User (PATCH)</h2>
-                    <input
-                        type="text"
-                        value={userId.patchId}
-                        onChange={(e) => setUserId({ ...userId, patchId: e.target.value })}
-                        placeholder="User ID"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.first_name}
-                        onChange={(e) => setUpdateData({ ...updateData, first_name: e.target.value })}
-                        placeholder="First Name"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.last_name}
-                        onChange={(e) => setUpdateData({ ...updateData, last_name: e.target.value })}
-                        placeholder="Last Name"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.gender}
-                        onChange={(e) => setUpdateData({ ...updateData, gender: e.target.value })}
-                        placeholder="Gender"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="email"
-                        value={updateData.email}
-                        onChange={(e) => setUpdateData({ ...updateData, email: e.target.value })}
-                        placeholder="Email"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={updateData.job_title}
-                        onChange={(e) => setUpdateData({ ...updateData, job_title: e.target.value })}
-                        placeholder="Job Title"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <input
-                        type="text"
-                        value={appId}
-                        onChange={(e) => setAppId(e.target.value)}
-                        placeholder="API KEY"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <button
-                        onClick={patchUser}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600"
-                    >
-                        Partial Update User
-                    </button>
-                </div>
-
-                {/* Delete User */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-semibold mb-2">Delete User</h2>
-                    <input
-                        type="text"
-                        value={userId.deleteId}
-                        onChange={(e) => setUserId({ ...userId, deleteId: e.target.value })}
-                        placeholder="User ID"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                     <input
-                        type="text"
-                        value={appId}
-                        onChange={(e) => setAppId(e.target.value)}
-                        placeholder="API KEY"
-                        className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
-                    />
-                    <button
-                        onClick={deleteUser}
-                        className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600"
-                    >
-                        Delete User
-                    </button>
-                </div>
-
-                {/* Response Display */}
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h2 className="text-xl font-semibold mb-2">Response</h2>
-                    <pre className="whitespace-pre-wrap">{response}</pre>
-                </div>
-            </div>
-        </div>
+  const deleteUser = () => {
+    makeRequest(
+      "delete",
+      `${userId.deleteId}`,
+      {},
+      {
+        "Content-Type": "application/x-www-form-urlencoded",
+        appid: appId,
+      }
     );
+    // Reset the getId field to an empty string
+    setUserId((prevState) => ({
+      ...prevState,
+      getId: "",
+    }));
+
+    setAppId((prevState) => ({
+      ...prevState,
+      deleteAppId: "",
+    }));
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+          <TailSpin
+            visible={true}
+            height="80"
+            width="80"
+            color="#4fa94d"
+            ariaLabel="tail-spin-loading"
+            radius="1"
+            wrapperStyle={{}}
+            wrapperClass=""
+          />
+        </div>
+      )}
+      <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold mb-6 text-center">User API UI</h1>
+
+        {/* Get All Users */}
+        <div className="mb-6">
+          <Button onClick={getUsers} color="bg-blue-500 hover:bg-blue-600">
+            Get All Users
+          </Button>
+        </div>
+
+        {/* Get User by ID */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-2">Get User by ID</h2>
+          <InputField
+            value={userId.getId}
+            onChange={(e) => setUserId({ ...userId, getId: e.target.value })}
+            placeholder="User ID"
+          />
+          <Button onClick={getUserById} color="bg-green-500 hover:bg-green-600">
+            Get User
+          </Button>
+        </div>
+
+        {/* Create User */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-2">Create User</h2>
+          <InputField
+            value={newUser.first_name}
+            onChange={(e) =>
+              setNewUser({ ...newUser, first_name: e.target.value })
+            }
+            placeholder="First Name"
+          />
+          <InputField
+            value={newUser.last_name}
+            onChange={(e) =>
+              setNewUser({ ...newUser, last_name: e.target.value })
+            }
+            placeholder="Last Name"
+          />
+          <InputField
+            value={newUser.gender}
+            onChange={(e) => setNewUser({ ...newUser, gender: e.target.value })}
+            placeholder="Gender"
+          />
+          <InputField
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            placeholder="Email"
+            type="email"
+          />
+          <InputField
+            value={newUser.job_title}
+            onChange={(e) =>
+              setNewUser({ ...newUser, job_title: e.target.value })
+            }
+            placeholder="Job Title"
+          />
+          <InputField
+            value={appId.postAppId} // Set value to the specific field
+            onChange={(e) =>
+              setAppId((prevState) => ({
+                ...prevState,
+                postAppId: e.target.value, // Update the specific field
+              }))
+            }
+            placeholder="API KEY"
+          />
+          <Button onClick={postUser} color="bg-blue-500 hover:bg-blue-600">
+            Create User
+          </Button>
+        </div>
+
+        {/* Update User (PUT) */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-2">Update User (PUT)</h2>
+          <InputField
+            value={userId.patchId}
+            onChange={(e) => setUserId({ ...userId, putId: e.target.value })}
+            placeholder="User ID"
+          />
+          <InputField
+            value={newUser.first_name}
+            onChange={(e) =>
+              setNewUser({ ...newUser, first_name: e.target.value })
+            }
+            placeholder="First Name"
+          />
+          <InputField
+            value={newUser.last_name}
+            onChange={(e) =>
+              setNewUser({ ...newUser, last_name: e.target.value })
+            }
+            placeholder="Last Name"
+          />
+          <InputField
+            value={newUser.gender}
+            onChange={(e) => setNewUser({ ...newUser, gender: e.target.value })}
+            placeholder="Gender"
+          />
+          <InputField
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            placeholder="Email"
+            type="email"
+          />
+          <InputField
+            value={appId.putAppId} // Set value to the specific field
+            onChange={(e) =>
+              setAppId((prevState) => ({
+                ...prevState,
+                postAppId: e.target.value, // Update the specific field
+              }))
+            }
+            placeholder="Job Title"
+          />
+
+          <Button onClick={putUser} color="bg-yellow-500 hover:bg-yellow-600">
+            Update User
+          </Button>
+        </div>
+
+        {/* Partial Update User (PATCH) */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-2">
+            Partial Update User (PATCH)
+          </h2>
+          <InputField
+            value={userId.patchId}
+            onChange={(e) => setUserId({ ...userId, patchId: e.target.value })}
+            placeholder="User ID"
+          />
+          <InputField
+            value={newUser.first_name}
+            onChange={(e) =>
+              setNewUser({ ...newUser, first_name: e.target.value })
+            }
+            placeholder="First Name"
+          />
+          <InputField
+            value={newUser.last_name}
+            onChange={(e) =>
+              setNewUser({ ...newUser, last_name: e.target.value })
+            }
+            placeholder="Last Name"
+          />
+          <InputField
+            value={newUser.gender}
+            onChange={(e) => setNewUser({ ...newUser, gender: e.target.value })}
+            placeholder="Gender"
+          />
+          <InputField
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            placeholder="Email"
+            type="email"
+          />
+          <InputField
+            value={newUser.job_title}
+            onChange={(e) =>
+              setNewUser({ ...newUser, job_title: e.target.value })
+            }
+            placeholder="Job Title"
+          />
+          <InputField
+            value={appId.patchAppId} // Set value to the specific field
+            onChange={(e) =>
+              setAppId((prevState) => ({
+                ...prevState,
+                patchAppId: e.target.value, // Update the specific field
+              }))
+            }
+            placeholder="API KEY"
+          />
+          <Button onClick={patchUser} color="bg-yellow-500 hover:bg-yellow-600">
+            Partial Update User
+          </Button>
+        </div>
+
+        {/* Delete User */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-2">Delete User</h2>
+          <InputField
+            value={userId.deleteId}
+            onChange={(e) => setUserId({ ...userId, deleteId: e.target.value })}
+            placeholder="User ID"
+          />
+          <InputField
+            value={appId.deleteAppId} // Set value to the specific field
+            onChange={(e) =>
+              setAppId((prevState) => ({
+                ...prevState,
+                deleteAppId: e.target.value, // Update the specific field
+              }))
+            }
+            placeholder="API KEY"
+          />
+          <Button onClick={deleteUser} color="bg-red-500 hover:bg-red-600">
+            Delete User
+          </Button>
+        </div>
+
+        {/* Response Display */}
+        <ResponseDisplay response={error || data} />
+      </div>
+    </div>
+  );
 };
 
 export default App;
