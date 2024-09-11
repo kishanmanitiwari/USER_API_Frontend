@@ -113,7 +113,7 @@ const App = () => {
     // Reset the getId field to an empty string
     setUserId((prevState) => ({
       ...prevState,
-      getId: "",
+      deleteId: "",
     }));
 
     setAppId((prevState) => ({
@@ -216,7 +216,7 @@ const App = () => {
           <h2 className="text-2xl font-semibold mb-2">Update User (PUT)</h2>
           <InputField
             value={userId.patchId}
-            onChange={(e) => setUserId({ ...userId, putId: e.target.value })}
+            onChange={(e) => setUserId({ ...userId, patchId: e.target.value })}
             placeholder="User ID"
           />
           <InputField
