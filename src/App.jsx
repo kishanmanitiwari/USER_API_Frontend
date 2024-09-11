@@ -107,7 +107,7 @@ const App = () => {
       {},
       {
         "Content-Type": "application/x-www-form-urlencoded",
-        appid: appId,
+        appid: appId.deleteAppId,
       }
     );
     // Reset the getId field to an empty string
